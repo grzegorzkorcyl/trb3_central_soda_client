@@ -85,6 +85,7 @@ add_file -vhdl -lib work "../../trbnet/special/trb_net_reset_handler.vhd"
 add_file -vhdl -lib work "../../trbnet/trb_net_components.vhd"
 add_file -vhdl -lib work "../../trb3/base/trb3_components.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
+add_file -vhdl -lib work "../../trbnet/media_interfaces/sync/med_sync_define.vhd"
 
 
 #top
