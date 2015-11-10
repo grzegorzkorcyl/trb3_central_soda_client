@@ -100,10 +100,13 @@ add_file -vhdl -lib work "../hdl/soda/source/soda_packet_builder.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/soda_reply_handler.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/soda_calibration_timer.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/posedge_to_pulse.vhd"
+add_file -vhdl -lib work "../hdl/soda/source/soda_d8crc8.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_16to8_SODA.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_8to16_SODA.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_posedge_to_pulse.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_SODA_clockcrossing.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/async_fifo_16x8.vhd"
+
 
 
 #soda media interfaces
