@@ -67,6 +67,7 @@ impl -active "workdir"
 
 add_file -vhdl -lib work "../../trbnet/trb_net_std.vhd"
 add_file -vhdl -lib work "version.vhd"
+add_file -vhdl -lib work "config.vhd"
 add_file -vhdl -lib work "../../trbnet/trb_net_components.vhd"
 add_file -vhdl -lib work "../../trbnet/trb_net16_hub_func.vhd"
 add_file -vhdl -lib work "../../trb3/base/code/clock_switch.vhd"
