@@ -63,21 +63,28 @@ impl -active "workdir"
 
 
 
-#add_file options
 
+
+
+
+#various files
 add_file -vhdl -lib work "../../trbnet/trb_net_std.vhd"
 add_file -vhdl -lib work "version.vhd"
 add_file -vhdl -lib work "config.vhd"
-add_file -vhdl -lib work "../../trbnet/trb_net_components.vhd"
 add_file -vhdl -lib work "../../trbnet/trb_net16_hub_func.vhd"
 add_file -vhdl -lib work "../../trb3/base/code/clock_switch.vhd"
 #add_file -vhdl -lib work "../../trb3/base/code/SFP_DDM.vhd"
 add_file -vhdl -lib work "../../trbnet/lattice/ecp3/lattice_ecp2m_fifo.vhd"
-add_file -vhdl -lib work "../../trb3/base/trb3_components.vhd"
 add_file -vhdl -lib work "../../trbnet/basics/signal_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/basics/state_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/basics/pulse_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/special/trb_net_reset_handler.vhd"
+
+
+#component files
+add_file -vhdl -lib work "../../trbnet/trb_net_components.vhd"
+add_file -vhdl -lib work "../../trb3/base/trb3_components.vhd"
+add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
 
 
 #top
@@ -85,7 +92,6 @@ add_file -vhdl -lib work "../hdl/trb3_central.vhd"
 
 
 #soda sources
-add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/soda_hub.vhd"
 
 
