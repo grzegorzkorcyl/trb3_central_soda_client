@@ -37,6 +37,10 @@ use work.config.all;
 -- C000 - CFFF  TDC configuration & status
 -- D000 - D13F  Flash Programming
 
+
+use work.soda_components.all;
+use work.panda_package.all; 
+
 entity trb3_central is
 	port(
 		--Clocks
