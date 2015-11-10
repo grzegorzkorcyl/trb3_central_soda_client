@@ -39,7 +39,7 @@ use work.config.all;
 
 
 use work.soda_components.all;
-use work.panda_package.all; 
+use work.panda_package.all;
 
 entity trb3_central is
 	port(
@@ -151,7 +151,9 @@ entity trb3_central is
 		SODA_SRC_TXP_OUT, SODA_SRC_TXN_OUT   : out   std_logic;
 		SODA_SRC_RXP_IN, SODA_SRC_RXN_IN     : in    std_logic;
 		SODA_ENDP_RXP_IN, SODA_ENDP_RXN_IN   : in    std_logic_vector(3 downto 0);
-		SODA_ENDP_TXP_OUT, SODA_ENDP_TXN_OUT : out   std_logic_vector(3 downto 0)
+		SODA_ENDP_TXP_OUT, SODA_ENDP_TXN_OUT : out   std_logic_vector(3 downto 0);
+
+		CODE_LINE                            : in    std_logic_vector(1 downto 0)
 	);
 
 	attribute syn_useioff : boolean;
@@ -861,7 +863,7 @@ begin
 		);
 
 	---------------------------------------------------------------------------
-	-- SODA
+	-- TrbNEt HUB
 	--------------------------------------------------------------------------- 
 	THE_HUB : trb_net16_hub_base
 		generic map(
