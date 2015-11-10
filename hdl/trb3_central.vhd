@@ -578,330 +578,6 @@ architecture trb3_central_arch of trb3_central is
    end component;      
 
 begin
-  assert not(USE_4_SFP = c_YES and INCLUDE_CBMNET = c_YES) report "CBMNET uses SFPs 1-4 and hence does not support USE_4_SFP" severity failure;
-  assert not(INCLUDE_CBMNET = c_YES and INCLUDE_CTS = c_NO) report "CBMNET is supported only with CTS included" severity failure;
-
--- MBS Module
-  gen_mbs_vulom_as_etm : if ETM_CHOICE = ETM_CHOICE_MBS_VULOM and INCLUDE_CTS = c_YES and INCLUDE_ETM = c_YES generate
-    THE_MBS : entity work.mbs_vulom_recv
-      port map (
-        CLK      => clk_100_i,
-        RESET_IN => reset_i,
-
-        MBS_IN  => CLK_EXT(3),
-        CLK_200 => clk_200_i,
-
-        TRG_ASYNC_OUT => tdc_inputs(1),
-        TRG_SYNC_OUT  => cts_ext_trigger,
-
-        TRIGGER_IN    => cts_rdo_trg_data_valid,
-        DATA_OUT      => cts_rdo_additional(0).data,
-        WRITE_OUT     => cts_rdo_additional(0).data_write,
-        FINISHED_OUT  => cts_rdo_additional(0).data_finished,
-        STATUSBIT_OUT => cts_rdo_additional(0).statusbits,
-
-        CONTROL_REG_IN => cts_ext_control,
-        STATUS_REG_OUT => cts_ext_status,
-        HEADER_REG_OUT => cts_ext_header,
-
-        DEBUG => cts_ext_debug
-        );
-  end generate;
-
--- Mainz A2 Module
-  gen_mainz_a2_as_etm : if ETM_CHOICE = ETM_CHOICE_MAINZ_A2 and INCLUDE_CTS = c_YES and INCLUDE_ETM = c_YES generate
-    mainz_a2_recv_1 : entity work.mainz_a2_recv
-      port map (
-        CLK               => clk_100_i,
-        RESET_IN          => reset_i,
-        TIMER_TICK_1US_IN => timer_ticks(0),
-        SERIAL_IN         => CLK_EXT(3),
-        EXT_TRG_IN        => CLK_EXT(4),
-        TRG_SYNC_OUT      => cts_ext_trigger,
-        TRIGGER_IN        => cts_rdo_trg_data_valid,
-
-        DATA_OUT      => cts_rdo_additional(0).data,
-        WRITE_OUT     => cts_rdo_additional(0).data_write,
-        FINISHED_OUT  => cts_rdo_additional(0).data_finished,
-        STATUSBIT_OUT => cts_rdo_additional(0).statusbits,
-
-        CONTROL_REG_IN => cts_ext_control,
-        STATUS_REG_OUT => cts_ext_status,
-        HEADER_REG_OUT => cts_ext_header,
-
-        DEBUG => cts_ext_debug
-        );
-  end generate;
-
--- CBMNet ETM
-  gen_cbmnet_etm : if (ETM_CHOICE = ETM_CHOICE_CBMNET and INCLUDE_CTS = c_YES) or INCLUDE_ETM = c_NO generate
-    cts_ext_trigger                     <= cbm_etm_trigger_i;
-    cts_rdo_additional(0).data_finished <= '1';
-    cts_ext_header                      <= "00";
-    cts_ext_status                      <= x"deadc0de";
-  end generate;
-
-  GEN_CTS : if INCLUDE_CTS = c_YES generate
-    THE_CTS : CTS
-      generic map (
-        EXTERNAL_TRIGGER_ID => ETM_ID,  -- fill in trigger logic enumeration id of external trigger logic
-
-        TRIGGER_COIN_COUNT   => TRIGGER_COIN_COUNT,
-        TRIGGER_PULSER_COUNT => TRIGGER_PULSER_COUNT,
-        TRIGGER_RAND_PULSER  => TRIGGER_RAND_PULSER,
-
-        TRIGGER_INPUT_COUNT => 0,  -- obsolete! now all inputs are routed via an input multiplexer!
-        TRIGGER_ADDON_COUNT => TRIGGER_ADDON_COUNT,
-
-        PERIPH_TRIGGER_COUNT => PERIPH_TRIGGER_COUNT,
-
-        OUTPUT_MULTIPLEXERS => CTS_OUTPUT_MULTIPLEXERS,
-
-        ADDON_LINE_COUNT  => CTS_ADDON_LINE_COUNT,
-        ADDON_GROUPS      => 7,
-        ADDON_GROUP_UPPER => (3, 7, 11, 15, 16, 17, others => 0)
-        )
-      port map (
-        CLK   => clk_100_i,
-        RESET => reset_i,
-
-        --TRIGGERS_IN => trigger_in_buf_i,
-        TRIGGER_BUSY_OUT   => trigger_busy_i,
-        TIME_REFERENCE_OUT => cts_trigger_out,
-
-        ADDON_TRIGGERS_IN        => cts_addon_triggers_in,
-        ADDON_GROUP_ACTIVITY_OUT => cts_addon_activity_i,
-        ADDON_GROUP_SELECTED_OUT => cts_addon_selected_i,
-
-        EXT_TRIGGER_IN     => cts_ext_trigger,
-        EXT_STATUS_IN      => cts_ext_status,
-        EXT_CONTROL_OUT    => cts_ext_control,
-        EXT_HEADER_BITS_IN => cts_ext_header,
-
-        PERIPH_TRIGGER_IN => cts_periph_trigger_i,
-
-        OUTPUT_MULTIPLEXERS_OUT => cts_output_multiplexers_i,
-
-        CTS_TRG_SEND_OUT        => cts_trg_send,
-        CTS_TRG_TYPE_OUT        => cts_trg_type,
-        CTS_TRG_NUMBER_OUT      => cts_trg_number,
-        CTS_TRG_INFORMATION_OUT => cts_trg_information,
-        CTS_TRG_RND_CODE_OUT    => cts_trg_code,
-        CTS_TRG_STATUS_BITS_IN  => cts_trg_status_bits,
-        CTS_TRG_BUSY_IN         => cts_trg_busy,
-
-        CTS_IPU_SEND_OUT        => cts_ipu_send,
-        CTS_IPU_TYPE_OUT        => cts_ipu_type,
-        CTS_IPU_NUMBER_OUT      => cts_ipu_number,
-        CTS_IPU_INFORMATION_OUT => cts_ipu_information,
-        CTS_IPU_RND_CODE_OUT    => cts_ipu_code,
-        CTS_IPU_STATUS_BITS_IN  => cts_ipu_status_bits,
-        CTS_IPU_BUSY_IN         => cts_ipu_busy,
-
-        CTS_REGIO_ADDR_IN          => cts_regio_addr,
-        CTS_REGIO_DATA_IN          => cts_regio_data_out,
-        CTS_REGIO_READ_ENABLE_IN   => cts_regio_read,
-        CTS_REGIO_WRITE_ENABLE_IN  => cts_regio_write,
-        CTS_REGIO_DATA_OUT         => cts_regio_data_in,
-        CTS_REGIO_DATAREADY_OUT    => cts_regio_dataready,
-        CTS_REGIO_WRITE_ACK_OUT    => cts_regio_write_ack,
-        CTS_REGIO_UNKNOWN_ADDR_OUT => cts_regio_unknown_addr,
-
-        LVL1_TRG_DATA_VALID_IN     => cts_rdo_trg_data_valid,
-        LVL1_VALID_TIMING_TRG_IN   => cts_rdo_valid_timing_trg,
-        LVL1_VALID_NOTIMING_TRG_IN => cts_rdo_valid_notiming_trg,
-        LVL1_INVALID_TRG_IN        => cts_rdo_invalid_trg,
-
-        FEE_TRG_STATUSBITS_OUT => cts_rdo_trg_status_bits_cts,
-        FEE_DATA_OUT           => cts_rdo_data,
-        FEE_DATA_WRITE_OUT     => cts_rdo_write,
-        FEE_DATA_FINISHED_OUT  => cts_rdo_finished
-        );   
-
-    cts_addon_triggers_in(1 downto 0) <= CLK_EXT;  -- former trigger inputs
-    cts_addon_triggers_in(3 downto 2) <= TRIGGER_EXT(3 downto 2);  -- former trigger inputs
-
-    cts_addon_triggers_in(7 downto 4)   <= ECL_IN;
-    cts_addon_triggers_in(11 downto 8)  <= JIN1;
-    cts_addon_triggers_in(15 downto 12) <= JIN2;
-    cts_addon_triggers_in(17 downto 16) <= NIM_IN;
-
-    cts_addon_triggers_in(18)           <= or_all(ECL_IN);
-    cts_addon_triggers_in(19)           <= or_all(JIN1);
-    cts_addon_triggers_in(20)           <= or_all(JIN2);
-    cts_addon_triggers_in(21)           <= or_all(NIM_IN);
-    cts_addon_triggers_in(37 downto 22) <= JTTL;
-
-    LED_BANK(7 downto 6) <= cts_addon_activity_i(4 downto 3);
-    LED_RJ_GREEN <= (
-      0      => cts_addon_activity_i(2),
-      1      => cts_addon_activity_i(3),
-      5      => cts_addon_activity_i(1),
-      others => '0'
-      );
-
-    LED_RJ_RED <= (
-      0      => cts_addon_selected_i(2),
-      1      => cts_addon_selected_i(3),
-      5      => cts_addon_selected_i(1),
-      others => '0'
-      );
-
-    cts_periph_trigger_i <= FPGA4_COMM(10 downto 6)
-                            & FPGA3_COMM(10 downto 6)
-                            & FPGA2_COMM(10 downto 6)
-                            & FPGA1_COMM(10 downto 6);
-
-    JOUT1    <= cts_output_multiplexers_i(3 downto 0);
-    JOUT2    <= cts_output_multiplexers_i(7 downto 4);
-    JOUTLVDS <= cts_output_multiplexers_i(7 downto 0);
-  --LED_BANK <= cts_output_multiplexers_i(7 downto 0);
-  end generate;
-
-  GEN_NO_CTS : if INCLUDE_CTS = c_NO generate
-    cts_rdo_trg_status_bits <= (others => '0');
-    cts_rdo_finished        <= '1';
-    cts_regio_unknown_addr  <= '1';
-
-    cts_ipu_send    <= '0';
-    cts_trg_send    <= '0';
-    cts_trigger_out <= '0';
-  end generate;
-
----------------------------------------------------------------------------
--- CBMNET stack
----------------------------------------------------------------------------   
-  GEN_CBMNET : if INCLUDE_CBMNET = c_YES generate
-    THE_CBM_BRIDGE : cbmnet_bridge
-      port map (
-        -- clock and reset
-        CLK125_IN      => clk_125_i,    -- in std_logic;
-        ASYNC_RESET_IN => clear_i,
-        TRB_CLK_IN     => clk_100_i,    -- in std_logic;
-        TRB_RESET_IN   => reset_i,      -- in std_logic;
-
-        CBM_CLK_OUT   => cbm_clk_i,     -- out std_logic;
-        CBM_RESET_OUT => cbm_reset_i,   -- out std_logic;
-
-        -- Media Interface
-        SD_RXD_P_IN  => SFP_RX_P(5),
-        SD_RXD_N_IN  => SFP_RX_N(5),
-        SD_TXD_P_OUT => SFP_TX_P(5),
-        SD_TXD_N_OUT => SFP_TX_N(5),
-
-        SD_PRSNT_N_IN => SFP_MOD0(1),
-        SD_LOS_IN     => SFP_LOS(1),
-        SD_TXDIS_OUT  => SFP_TXDIS(1),
-
-        LED_RX_OUT => cbm_phy_led_rx_i,
-        LED_TX_OUT => cbm_phy_led_tx_i,
-        LED_OK_OUT => cbm_phy_led_ok_i,
-
-        -- Status and strobes   
-        CBM_LINK_ACTIVE_OUT    => cbm_link_active_i,
-        CBM_DLM_OUT            => cbm_sync_dlm_sensed_i,      -- out std_logic;
-        CBM_TIMING_TRIGGER_OUT => cbm_sync_timing_trigger_i,  -- out std_logic;
-        CBM_SYNC_PULSER_OUT    => cbm_sync_pulser_i,          -- out std_logic;
-
-        -- TRBNet Terminal
-        TRB_TRIGGER_IN             => cts_trigger_out,
-        TRB_RDO_VALID_DATA_TRG_IN  => cts_rdo_trg_data_valid,  -- in  std_logic;
-        TRB_RDO_VALID_NO_TIMING_IN => cts_rdo_valid_notiming_trg,  -- in  std_logic;
-        TRB_RDO_DATA_OUT           => cts_rdo_additional(1).data,  --  out std_logic_vector(31 downto 0);
-        TRB_RDO_WRITE_OUT          => cts_rdo_additional(1).data_write,  --  out std_logic;
-        TRB_RDO_FINISHED_OUT       => cts_rdo_additional(1).data_finished,  --  out std_logic;
-
-        TRB_TRIGGER_OUT => cbm_etm_trigger_i,
-
-        -- connect to hub
-        HUB_CTS_NUMBER_IN            => hub_cts_number,  -- in  std_logic_vector (15 downto 0);
-        HUB_CTS_CODE_IN              => hub_cts_code,  -- in  std_logic_vector (7  downto 0);
-        HUB_CTS_INFORMATION_IN       => hub_cts_information,  -- in  std_logic_vector (7  downto 0);
-        HUB_CTS_READOUT_TYPE_IN      => hub_cts_readout_type,  -- in  std_logic_vector (3  downto 0);
-        HUB_CTS_START_READOUT_IN     => hub_cts_start_readout,  -- in  std_logic;
-        HUB_CTS_READOUT_FINISHED_OUT => hub_cts_readout_finished,  -- out std_logic;  --no more data, end transfer, send TRM
-        HUB_CTS_STATUS_BITS_OUT      => hub_cts_status_bits,  -- out std_logic_vector (31 downto 0);
-        HUB_FEE_DATA_IN              => hub_fee_data,  -- in  std_logic_vector (15 downto 0);
-        HUB_FEE_DATAREADY_IN         => hub_fee_dataready,    -- in  std_logic;
-        HUB_FEE_READ_OUT             => hub_fee_read,  -- out std_logic;  --must be high when idle, otherwise you will never get a dataready
-        HUB_FEE_STATUS_BITS_IN       => hub_fee_status_bits,  -- in  std_logic_vector (31 downto 0);
-        HUB_FEE_BUSY_IN              => hub_fee_busy,  -- in  std_logic;   
-
-        -- connect to GbE
-        GBE_CTS_NUMBER_OUT          => gbe_cts_number,  -- out std_logic_vector (15 downto 0);
-        GBE_CTS_CODE_OUT            => gbe_cts_code,  -- out std_logic_vector (7  downto 0);
-        GBE_CTS_INFORMATION_OUT     => gbe_cts_information,  -- out std_logic_vector (7  downto 0);
-        GBE_CTS_READOUT_TYPE_OUT    => gbe_cts_readout_type,  -- out std_logic_vector (3  downto 0);
-        GBE_CTS_START_READOUT_OUT   => gbe_cts_start_readout,  -- out std_logic;
-        GBE_CTS_READOUT_FINISHED_IN => gbe_cts_readout_finished,  -- in  std_logic;      --no more data, end transfer, send TRM
-        GBE_CTS_STATUS_BITS_IN      => gbe_cts_status_bits,  -- in  std_logic_vector (31 downto 0);
-        GBE_FEE_DATA_OUT            => gbe_fee_data,  -- out std_logic_vector (15 downto 0);
-        GBE_FEE_DATAREADY_OUT       => gbe_fee_dataready,    -- out std_logic;
-        GBE_FEE_READ_IN             => gbe_fee_read,  -- in  std_logic;  --must be high when idle, otherwise you will never get a dataready
-        GBE_FEE_STATUS_BITS_OUT     => gbe_fee_status_bits,  -- out std_logic_vector (31 downto 0);
-        GBE_FEE_BUSY_OUT            => gbe_fee_busy,  -- out std_logic;
-
-        -- reg io
-        --REGIO_IN              => cbm_regio_rx,
-        --REGIO_OUT             => cbm_regio_tx
-        REGIO_ADDR_IN         => cbm_regio_rx.addr,
-        REGIO_DATA_IN         => cbm_regio_rx.data,
-        REGIO_TIMEOUT_IN      => cbm_regio_rx.timeout,
-        REGIO_READ_ENABLE_IN  => cbm_regio_rx.read,
-        REGIO_WRITE_ENABLE_IN => cbm_regio_rx.write,
-
-        REGIO_DATA_OUT         => cbm_regio_tx.data,
-        REGIO_DATAREADY_OUT    => cbm_regio_tx.rack,
-        REGIO_WRITE_ACK_OUT    => cbm_regio_tx.wack,
-        REGIO_NO_MORE_DATA_OUT => cbm_regio_tx.nack,
-        REGIO_UNKNOWN_ADDR_OUT => cbm_regio_tx.unknown
-        );
-
-    cbm_regio_tx.ack <= cbm_regio_tx.rack or cbm_regio_tx.wack;
-
-    SFP_RATE_SEL(1)   <= '1';  -- not supported by SFP, but in general, this should be the correct setting
-    LED_TRIGGER_GREEN <= not cbm_link_active_i;
-    LED_TRIGGER_RED   <= '0';
-
-    --Internal Connection
-    med_read_in(4)                  <= '0';
-    med_data_in(79 downto 64)       <= (others => '0');
-    med_packet_num_in(14 downto 12) <= (others => '0');
-    med_dataready_in(4)             <= '0';
-    med_stat_op(79 downto 64) <= (
-      64+2 downto 64 => '1',            -- ERROR_NC
-      64 + 14        => '1',            -- indicate "no signal"
-      others         => '0');
-    med_stat_debug(4*64+63 downto 4*64) <= (others => '0');
-
-    --SFP_TXDIS(7 downto 2) <= (others => '1');
-
-  end generate;
-
-  GEN_NO_CBMNET : if INCLUDE_CBMNET = c_NO generate
-    gbe_cts_number        <= hub_cts_number;
-    gbe_cts_code          <= hub_cts_code;
-    gbe_cts_information   <= hub_cts_information;
-    gbe_cts_readout_type  <= hub_cts_readout_type;
-    gbe_cts_start_readout <= hub_cts_start_readout;
-    gbe_fee_data          <= hub_fee_data;
-    gbe_fee_dataready     <= hub_fee_dataready;
-    gbe_fee_status_bits   <= hub_fee_status_bits;
-    gbe_fee_busy          <= hub_fee_busy;
-
-    hub_cts_status_bits      <= gbe_cts_status_bits;
-    hub_cts_readout_finished <= gbe_cts_readout_finished;
-    hub_fee_read             <= gbe_fee_read;
-
-    LED_TRIGGER_GREEN <= not med_stat_op(4*16+9);
-    LED_TRIGGER_RED   <= not (med_stat_op(4*16+11) or med_stat_op(4*16+10));
-
-    cbm_etm_trigger_i <= '0';
-
-    cbm_regio_tx.nack    <= cbm_regio_rx.read or cbm_regio_rx.write when rising_edge(clk_100_i);
-    cbm_regio_tx.unknown <= cbm_regio_rx.read or cbm_regio_rx.write when rising_edge(clk_100_i);
-  end generate;
-
 
 ---------------------------------------------------------------------------
 -- Reset Generation
@@ -941,104 +617,150 @@ begin
    );
 
    clk_125_i <= CLK_GPLL_RIGHT;      
+   
+   
+  THE_MEDIA_UPLINK : trb_net16_med_sync3_ecp3_sfp
+    port map(
+      CLK => clk_200_i,
+      SYSCLK => clk_100_i,
+      RESET => reset_i,
+      CLEAR => clear_i,
+      CLK_EN => '1',
+      --Internal Connection
+      MED_DATA_IN => med_data_out(15 downto 0),
+      MED_PACKET_NUM_IN => med_packet_num_out(2 downto 0),
+      MED_DATAREADY_IN => med_dataready_out(0),
+      MED_READ_OUT => med_read_in(0),
+      MED_DATA_OUT => med_data_in(15 downto 0),
+      MED_PACKET_NUM_OUT => med_packet_num_in(2 downto 0),
+      MED_DATAREADY_OUT => med_dataready_in(0),
+      MED_READ_IN => med_read_out(0),
+      REFCLK2CORE_OUT => open,
+      CLK_RX_HALF_OUT => rx_clock_100,
+      CLK_RX_FULL_OUT => rx_clock_200,
+      --SFP Connection
+      SD_RXD_P_IN => SERDES_ADDON_RX(8),
+      SD_RXD_N_IN => SERDES_ADDON_RX(9),
+      SD_TXD_P_OUT => SERDES_ADDON_TX(8),
+      SD_TXD_N_OUT => SERDES_ADDON_TX(9),
+      SD_DLM_IN => DLM_to_uplink_S,
+      SD_DLM_WORD_IN => DLM_WORD_to_uplink_S,
+      SD_DLM_OUT => DLM_from_uplink_S,
+      SD_DLM_WORD_OUT => DLM_WORD_from_uplink_S,
+      SD_PRSNT_N_IN => SFP_LOS(5), --//3?
+      SD_LOS_IN => SFP_LOS(5), --//3?
+      SD_TXDIS_OUT => SFP_TXDIS(5), --//3?
 
----------------------------------------------------------------------------
--- The TrbNet media interface (SFP)
----------------------------------------------------------------------------
-  gen_single_sfp : if USE_4_SFP = c_NO and INCLUDE_CBMNET = c_NO generate
-    THE_MEDIA_UPLINK : trb_net16_med_ecp3_sfp
-      generic map(
-        SERDES_NUM  => 0,               --number of serdes in quad
-        EXT_CLOCK   => c_NO,            --use internal clock
-        USE_200_MHZ => c_YES,           --run on 200 MHz clock
-        USE_CTC     => c_YES,
-        USE_SLAVE   => c_NO
-        )
-      port map(
-        CLK                => clk_200_i,
-        SYSCLK             => clk_100_i,
-        RESET              => reset_i,
-        CLEAR              => clear_i,
-        CLK_EN             => '1',
-        --Internal Connection
-        MED_DATA_IN        => med_data_out(79 downto 64),
-        MED_PACKET_NUM_IN  => med_packet_num_out(14 downto 12),
-        MED_DATAREADY_IN   => med_dataready_out(4),
-        MED_READ_OUT       => med_read_in(4),
-        MED_DATA_OUT       => med_data_in(79 downto 64),
-        MED_PACKET_NUM_OUT => med_packet_num_in(14 downto 12),
-        MED_DATAREADY_OUT  => med_dataready_in(4),
-        MED_READ_IN        => med_read_out(4),
-        REFCLK2CORE_OUT    => open,
-        --SFP Connection
-        SD_RXD_P_IN        => SFP_RX_P(5),
-        SD_RXD_N_IN        => SFP_RX_N(5),
-        SD_TXD_P_OUT       => SFP_TX_P(5),
-        SD_TXD_N_OUT       => SFP_TX_N(5),
-        SD_REFCLK_P_IN     => open,
-        SD_REFCLK_N_IN     => open,
-        SD_PRSNT_N_IN      => SFP_MOD0(1),
-        SD_LOS_IN          => SFP_LOS(1),
-        SD_TXDIS_OUT       => SFP_TXDIS(1),
-        -- Status and control port
-        STAT_OP            => med_stat_op(79 downto 64),
-        CTRL_OP            => med_ctrl_op(79 downto 64),
-        STAT_DEBUG         => med_stat_debug(4*64+63 downto 4*64),
-        CTRL_DEBUG         => (others => '0')
-        );
-    --SFP_TXDIS(7 downto 2) <= (others => '1');
-  end generate;
+      SCI_DATA_IN => sci1_data_in,
+      SCI_DATA_OUT => sci1_data_out,
+      SCI_ADDR => sci1_addr,
+      SCI_READ => sci1_read,
+      SCI_WRITE => sci1_write,
+      SCI_ACK => sci1_ack,      
+      -- Status and control port
+      STAT_OP => med_stat_op(15 downto 0),
+      CTRL_OP => med_ctrl_op(15 downto 0),
+      STAT_DEBUG => med_stat_debug(63 downto 0),
+      CTRL_DEBUG => (others => '0')
+      );
 
-  gen_four_sfp : if USE_4_SFP = c_YES and INCLUDE_CBMNET = c_NO generate
-    THE_MEDIA_UPLINK : trb_net16_med_ecp3_sfp_4
-      generic map(
-        REVERSE_ORDER => c_NO,          --order of ports
-        FREQUENCY     => 200            --run on 200 MHz clock
-        )
-      port map(
-        CLK                => clk_200_i,
-        SYSCLK             => clk_100_i,
-        RESET              => reset_i,
-        CLEAR              => clear_i,
-        CLK_EN             => '1',
-        --Internal Connection
-        MED_DATA_IN        => med_data_out(127 downto 64),
-        MED_PACKET_NUM_IN  => med_packet_num_out(23 downto 12),
-        MED_DATAREADY_IN   => med_dataready_out(7 downto 4),
-        MED_READ_OUT       => med_read_in(7 downto 4),
-        MED_DATA_OUT       => med_data_in(127 downto 64),
-        MED_PACKET_NUM_OUT => med_packet_num_in(23 downto 12),
-        MED_DATAREADY_OUT  => med_dataready_in(7 downto 4),
-        MED_READ_IN        => med_read_out(7 downto 4),
-
-        REFCLK2CORE_OUT => open,
-        --SFP Connection
-        SD_RXD_P_IN     => SFP_RX_P(8 downto 5),
-        SD_RXD_N_IN     => SFP_RX_N(8 downto 5),
-        SD_TXD_P_OUT    => SFP_TX_P(8 downto 5),
-        SD_TXD_N_OUT    => SFP_TX_N(8 downto 5),
-        SD_REFCLK_P_IN  => open,
-        SD_REFCLK_N_IN  => open,
-        SD_PRSNT_N_IN   => SFP_MOD0(4 downto 1),
-        SD_LOS_IN       => SFP_LOS(4 downto 1),
-        SD_TXDIS_OUT    => SFP_TXDIS(4 downto 1),
-
-        --       SCI_DATA_IN       => sci1_data_in,
-        --       SCI_DATA_OUT      => sci1_data_out,
-        --       SCI_ADDR          => sci1_addr,
-        --       SCI_READ          => sci1_read,
-        --       SCI_WRITE         => sci1_write,
-        --       SCI_ACK           => sci1_ack,
-        -- Status and control port
-
-        STAT_OP => med_stat_op(7*16+15 downto 4*16),
-        CTRL_OP => med_ctrl_op(7*16+15 downto 4*16),
-
-        STAT_DEBUG => open,
-        CTRL_DEBUG => (others => '0')
-        );
-    --SFP_TXDIS(7 downto 5) <= (others => '1');
-  end generate;
+-----------------------------------------------------------------------------
+---- The TrbNet media interface (SFP)
+-----------------------------------------------------------------------------
+--  gen_single_sfp : if USE_4_SFP = c_NO and INCLUDE_CBMNET = c_NO generate
+--    THE_MEDIA_UPLINK : trb_net16_med_ecp3_sfp
+--      generic map(
+--        SERDES_NUM  => 0,               --number of serdes in quad
+--        EXT_CLOCK   => c_NO,            --use internal clock
+--        USE_200_MHZ => c_YES,           --run on 200 MHz clock
+--        USE_CTC     => c_YES,
+--        USE_SLAVE   => c_NO
+--        )
+--      port map(
+--        CLK                => clk_200_i,
+--        SYSCLK             => clk_100_i,
+--        RESET              => reset_i,
+--        CLEAR              => clear_i,
+--        CLK_EN             => '1',
+--        --Internal Connection
+--        MED_DATA_IN        => med_data_out(79 downto 64),
+--        MED_PACKET_NUM_IN  => med_packet_num_out(14 downto 12),
+--        MED_DATAREADY_IN   => med_dataready_out(4),
+--        MED_READ_OUT       => med_read_in(4),
+--        MED_DATA_OUT       => med_data_in(79 downto 64),
+--        MED_PACKET_NUM_OUT => med_packet_num_in(14 downto 12),
+--        MED_DATAREADY_OUT  => med_dataready_in(4),
+--        MED_READ_IN        => med_read_out(4),
+--        REFCLK2CORE_OUT    => open,
+--        --SFP Connection
+--        SD_RXD_P_IN        => SFP_RX_P(5),
+--        SD_RXD_N_IN        => SFP_RX_N(5),
+--        SD_TXD_P_OUT       => SFP_TX_P(5),
+--        SD_TXD_N_OUT       => SFP_TX_N(5),
+--        SD_REFCLK_P_IN     => open,
+--        SD_REFCLK_N_IN     => open,
+--        SD_PRSNT_N_IN      => SFP_MOD0(1),
+--        SD_LOS_IN          => SFP_LOS(1),
+--        SD_TXDIS_OUT       => SFP_TXDIS(1),
+--        -- Status and control port
+--        STAT_OP            => med_stat_op(79 downto 64),
+--        CTRL_OP            => med_ctrl_op(79 downto 64),
+--        STAT_DEBUG         => med_stat_debug(4*64+63 downto 4*64),
+--        CTRL_DEBUG         => (others => '0')
+--        );
+--    --SFP_TXDIS(7 downto 2) <= (others => '1');
+--  end generate;
+--
+--  gen_four_sfp : if USE_4_SFP = c_YES and INCLUDE_CBMNET = c_NO generate
+--    THE_MEDIA_UPLINK : trb_net16_med_ecp3_sfp_4
+--      generic map(
+--        REVERSE_ORDER => c_NO,          --order of ports
+--        FREQUENCY     => 200            --run on 200 MHz clock
+--        )
+--      port map(
+--        CLK                => clk_200_i,
+--        SYSCLK             => clk_100_i,
+--        RESET              => reset_i,
+--        CLEAR              => clear_i,
+--        CLK_EN             => '1',
+--        --Internal Connection
+--        MED_DATA_IN        => med_data_out(127 downto 64),
+--        MED_PACKET_NUM_IN  => med_packet_num_out(23 downto 12),
+--        MED_DATAREADY_IN   => med_dataready_out(7 downto 4),
+--        MED_READ_OUT       => med_read_in(7 downto 4),
+--        MED_DATA_OUT       => med_data_in(127 downto 64),
+--        MED_PACKET_NUM_OUT => med_packet_num_in(23 downto 12),
+--        MED_DATAREADY_OUT  => med_dataready_in(7 downto 4),
+--        MED_READ_IN        => med_read_out(7 downto 4),
+--
+--        REFCLK2CORE_OUT => open,
+--        --SFP Connection
+--        SD_RXD_P_IN     => SFP_RX_P(8 downto 5),
+--        SD_RXD_N_IN     => SFP_RX_N(8 downto 5),
+--        SD_TXD_P_OUT    => SFP_TX_P(8 downto 5),
+--        SD_TXD_N_OUT    => SFP_TX_N(8 downto 5),
+--        SD_REFCLK_P_IN  => open,
+--        SD_REFCLK_N_IN  => open,
+--        SD_PRSNT_N_IN   => SFP_MOD0(4 downto 1),
+--        SD_LOS_IN       => SFP_LOS(4 downto 1),
+--        SD_TXDIS_OUT    => SFP_TXDIS(4 downto 1),
+--
+--        --       SCI_DATA_IN       => sci1_data_in,
+--        --       SCI_DATA_OUT      => sci1_data_out,
+--        --       SCI_ADDR          => sci1_addr,
+--        --       SCI_READ          => sci1_read,
+--        --       SCI_WRITE         => sci1_write,
+--        --       SCI_ACK           => sci1_ack,
+--        -- Status and control port
+--
+--        STAT_OP => med_stat_op(7*16+15 downto 4*16),
+--        CTRL_OP => med_ctrl_op(7*16+15 downto 4*16),
+--
+--        STAT_DEBUG => open,
+--        CTRL_DEBUG => (others => '0')
+--        );
+--    --SFP_TXDIS(7 downto 5) <= (others => '1');
+--  end generate;
 
 ---------------------------------------------------------------------------
 -- The TrbNet media interface (to other FPGA)

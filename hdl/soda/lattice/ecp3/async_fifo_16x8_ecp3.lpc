@@ -1,0 +1,50 @@
+[Device]
+Family=latticeecp3
+PartType=LFE3-150EA
+PartName=LFE3-150EA-8FN672C
+SpeedGrade=8
+Package=FPBGA672
+OperatingCondition=COM
+Status=P
+
+[IP]
+VendorName=Lattice Semiconductor Corporation
+CoreType=LPM
+CoreStatus=Demo
+CoreName=FIFO_DC
+CoreRevision=5.7
+ModuleName=async_fifo_16x8_ecp3
+SourceFormat=VHDL
+ParameterFileVersion=1.0
+Date=07/14/2015
+Time=16:15:57
+
+[Parameters]
+Verilog=0
+VHDL=1
+EDIF=1
+Destination=Synplicity
+Expression=BusA(0 to 7)
+Order=Big Endian [MSB:LSB]
+IO=0
+FIFOImp=LUT Based
+Depth=8
+Width=8
+RDepth=8
+RWidth=8
+regout=0
+CtrlByRdEn=0
+EmpFlg=0
+PeMode=Static - Dual Threshold
+PeAssert=10
+PeDeassert=12
+FullFlg=0
+PfMode=Static - Dual Threshold
+PfAssert=508
+PfDeassert=506
+RDataCount=0
+WDataCount=0
+EnECC=0
+
+[Command]
+cmd_line= -w -n async_fifo_16x8_ecp3 -lang vhdl -synth synplify -bus_exp 7 -bb -arch ep5c00 -type fifodc -pfu_fifo -addr_width 3 -data_width 8 -num_words 8 -rdata_width 8 -no_enable -pe -1 -pf -1

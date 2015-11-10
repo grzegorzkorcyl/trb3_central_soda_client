@@ -1,0 +1,7 @@
+MODULE serdes_sync_200_full DEFIN serdes_sync_200_full.vhd
+	SUBMODULE PCSD
+		INSTANCE PCSD_INST
+	SUBMODULE VHI
+		INSTANCE vhi_inst
+	SUBMODULE VLO
+		INSTANCE vlo_inst
