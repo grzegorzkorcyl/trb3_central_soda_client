@@ -106,6 +106,7 @@ add_file -vhdl -lib work "../hdl/soda/HUB_8to16_SODA.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_posedge_to_pulse.vhd"
 add_file -vhdl -lib work "../hdl/soda/HUB_SODA_clockcrossing.vhd"
 add_file -vhdl -lib work "../hdl/soda/lattice/async_fifo_16x8.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/ecp3/async_fifo_16x8_ecp3.vhd"
 
 
 
