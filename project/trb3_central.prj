@@ -61,21 +61,7 @@ impl -active "workdir"
 ####################
 
 
-add_file -vhdl -lib work "../hdl/trb3_central.vhd"
 
-
-#soda sources
-add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
-add_file -vhdl -lib work "../hdl/soda/source/soda_hub.vhd"
-
-#soda media interfaces
-add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_sync3_ecp3_sfp.vhd"
-add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_syncfull_ecp3_sfp.vhd"
-add_file -vhdl -lib work "../hdl/soda/lattice/serdes_rx_reset_sm.vhd"
-add_file -vhdl -lib work "../hdl/soda/lattice/serdes_tx_reset_sm.vhd"
-
-add_file -vhdl -lib work "../../trbnet/media_interfaces/sync/rx_reset_fsm.vhd"
-add_file -vhdl -lib work "../../trbnet/media_interfaces/sync/tx_reset_fsm.vhd"
 
 #add_file options
 
@@ -91,6 +77,26 @@ add_file -vhdl -lib work "../../trbnet/basics/signal_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/basics/state_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/basics/pulse_sync.vhd"
 add_file -vhdl -lib work "../../trbnet/special/trb_net_reset_handler.vhd"
+
+
+#top
+add_file -vhdl -lib work "../hdl/trb3_central.vhd"
+
+
+#soda sources
+add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
+add_file -vhdl -lib work "../hdl/soda/source/soda_hub.vhd"
+
+
+#soda media interfaces
+add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_sync3_ecp3_sfp.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_syncfull_ecp3_sfp.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/serdes_rx_reset_sm.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/serdes_tx_reset_sm.vhd"
+
+add_file -vhdl -lib work "../../trbnet/media_interfaces/sync/rx_reset_fsm.vhd"
+add_file -vhdl -lib work "../../trbnet/media_interfaces/sync/tx_reset_fsm.vhd"
+
 
 
 
