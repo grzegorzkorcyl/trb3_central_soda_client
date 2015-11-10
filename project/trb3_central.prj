@@ -69,8 +69,8 @@ add_file -vhdl -lib work "../hdl/soda/source/soda_components.vhd"
 add_file -vhdl -lib work "../hdl/soda/source/soda_hub.vhd"
 
 #soda media interfaces
-add_file -vhdl -lib work "../hdl/soda/lattice/ecp3/trb_net16_med_sync3_ecp3_sfp.vhd"
-add_file -vhdl -lib work "../hdl/soda/lattice/ecp3/trb_net16_med_syncfull_ecp3_sfp.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_sync3_ecp3_sfp.vhd"
+add_file -vhdl -lib work "../hdl/soda/lattice/trb_net16_med_syncfull_ecp3_sfp.vhd"
 
 #add_file options
 
